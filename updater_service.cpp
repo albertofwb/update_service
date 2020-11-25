@@ -20,10 +20,10 @@ void UpdaterService::OnStart(DWORD /*argc*/, TCHAR** /*argv[]*/) {
                     NULL,
                     0,
                     szPath);
-    PathAppend(szPath, _T("Audit\\logs"));
+    PathAppend(szPath, _T(PRODUCT_NAME "\\logs"));
     SHCreateDirectoryEx(NULL, szPath, NULL);
     CString logPath;
-    logPath.Format(_T("%s\\xadl_service.log"), szPath);
+    logPath.Format(_T("%s\\update_service.log"), szPath);
     m_logFile.open(logPath, std::ios_base::app);
 
     if (!m_logFile.is_open()) {

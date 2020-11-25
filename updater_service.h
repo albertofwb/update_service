@@ -2,6 +2,10 @@
 #include <fstream>
 #include "service_base.h"
 
+#ifndef PRODUCT_NAME
+    #define PRODUCT_NAME "Audit"
+#endif
+
 class UpdaterService: public ServiceBase
 {
 public:
@@ -12,8 +16,8 @@ public:
     UpdaterService& operator=(UpdaterService&& other) = delete;
 
     UpdaterService()
-        : ServiceBase(_T("UpdaterService"),
-            _T("Audit Client Update Service"),
+        : ServiceBase(_T(PRODUCT_NAME "Service"),
+            _T(PRODUCT_NAME " Update Service"),
             SERVICE_AUTO_START,
             SERVICE_ERROR_NORMAL,
             SERVICE_ACCEPT_STOP) {}

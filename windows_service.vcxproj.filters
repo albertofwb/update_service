@@ -23,9 +23,6 @@
     <ClInclude Include="service_installer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="user_tracker_service.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="updater_service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -38,9 +35,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="service_installer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="user_tracker_service.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="updater_service.cpp">
