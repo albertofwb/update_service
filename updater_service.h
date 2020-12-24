@@ -21,6 +21,11 @@ public:
             SERVICE_AUTO_START,
             SERVICE_ERROR_NORMAL,
             SERVICE_ACCEPT_STOP) {}
+#ifdef _DEBUG
+    void Test() {
+        OnStart(1, NULL);
+    }
+#endif
 private:
     void OnStart(DWORD argc, TCHAR* argv[]) override;
     void OnStop() override;
@@ -33,4 +38,3 @@ private:
 
     tofstream m_logFile;
 };
-

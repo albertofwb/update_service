@@ -30,8 +30,12 @@ int _tmain(int argc, TCHAR* argv[]) {
     _tprintf(_T("Invalid argument\n"));
     return -1;
   }
-  
+
+#ifdef _DEBUG
+  service.Test();
+#else
   service.Run();
+#endif
 
   return 0;
 }
