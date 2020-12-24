@@ -8,8 +8,6 @@ using tofstream = std::wofstream;
 
 // 以当前用户身份启动一个进程
 #pragma comment(lib, "Wtsapi32.lib")
-const int kHasUpgradeFlag = 200;
-BOOL gKeepRunning = TRUE;
 
 void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL) {
     STARTUPINFO si;
@@ -151,11 +149,7 @@ void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
     LPTSTR szUpdaterCmdline = _tcsdup(cmd.c_str());
     m_logFile << GetFormattedTime().GetString() << "cmdline " << szUpdaterCmdline << std::endl;
 
-    DWORD exitCode = 0;
-    RunNewProcess(szUpdaterCmdline, installPath.c_str(), &exitCode);
-    if (exitCode == kHasUpgradeFlag) {
-        m_logFile << GetFormattedTime().GetString() << "made an update" << szUpdaterCmdline << std::endl;
-    }
+    RunNewProcess(szUpdaterCmdline, installPath.c_str(), NULL);
     free(szUpdaterCmdline);
 }
 
@@ -175,30 +169,14 @@ void RunApp(std::wstring& installPath, tofstream& m_logFile) {
 }
 
 
-DWORD WINAPI CheckAppUpdateEverySixHours(LPVOID arg) {
-    tofstream* m_logFile = static_cast<tofstream *>(arg);
-
+DWORD WINAPI CheckAppUpdateEverySixHours(tofstream& m_logFile) {
     std::wstring installPath = GetAppInstallPath();
     if (!PathFileExists(installPath.c_str())) {
-        *m_logFile << GetFormattedTime().GetString() << "install path not exists" << std::endl;
+        m_logFile << GetFormattedTime().GetString() << "install path not exists" << std::endl;
         return false;
     }
 
-    const int sleepHours = 6;
-    const int sleepIntervalSeconds = sleepHours * 3600;
-
-    int remainSeconds = 0;
-    while (gKeepRunning) {
-        if (remainSeconds <= 0) {
-            remainSeconds = sleepIntervalSeconds;
-            *m_logFile << GetFormattedTime().GetString() << "check update" << std::endl;
-            RunUpdater(installPath, *m_logFile);
-            *m_logFile << GetFormattedTime().GetString() << "sleeping " << sleepHours << " hours" << std::endl;
-        }
-        Sleep(1000);
-        remainSeconds -= 1;
-    }
-    *m_logFile << GetFormattedTime().GetString() << "stopped" << std::endl;
+    RunUpdater(installPath, m_logFile);
 
     return true;
 }
@@ -225,7 +203,7 @@ void UpdaterService::OnStart(DWORD /*argc*/, TCHAR** /*argv[]*/) {
     else {
         m_logFile << GetFormattedTime().GetString() << "started" << std::endl;
     }
-    CreateThread(NULL, 0, CheckAppUpdateEverySixHours, NULL, NULL, NULL);
+    CheckAppUpdateEverySixHours(m_logFile);
 }
 
 void UpdaterService::OnStop() {
@@ -234,5 +212,4 @@ void UpdaterService::OnStop() {
         m_logFile << GetFormattedTime().GetString() << "stopped" << std::endl;
     }
     m_logFile.close();
-    gKeepRunning = FALSE;
 }
