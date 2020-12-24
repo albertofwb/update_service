@@ -6,8 +6,6 @@
 #include <fstream>
 using tofstream = std::wofstream;
 
-// 以当前用户身份启动一个进程
-#pragma comment(lib, "Wtsapi32.lib")
 
 void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL) {
     STARTUPINFO si;
@@ -41,40 +39,6 @@ void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL
     CloseHandle(pi.hThread);
 }
 
-bool StartInteractiveProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir)
-{
-    STARTUPINFO si;
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    si.lpDesktop = TEXT("winsta0\\default");  // Use the default desktop for GUIs
-    PROCESS_INFORMATION pi;
-    ZeroMemory(&pi, sizeof(pi));
-    HANDLE token;
-    DWORD sessionId = ::WTSGetActiveConsoleSessionId();
-    if (0xffffffff == sessionId)  // Noone is logged-in
-    {
-        return false;
-    }
-    // This only works if the current user is the system-account (we are probably a Windows-Service)
-    HANDLE dummy;
-    if (::WTSQueryUserToken(sessionId, &dummy)) {
-        if (!::DuplicateTokenEx(dummy, TOKEN_ALL_ACCESS, NULL, SecurityDelegation, TokenPrimary, &token)) {
-            ::CloseHandle(dummy);
-            return false;
-        }
-        ::CloseHandle(dummy);
-        // Create process for user with desktop
-        if (!::CreateProcessAsUser(token, NULL, lpCommandLine, NULL, NULL, FALSE, CREATE_NEW_CONSOLE, NULL, lpWorkDir, &si, &pi)) {  // The "new console" is necessary. Otherwise the process can hang our main process
-            ::CloseHandle(token);
-            return false;
-        }
-        ::CloseHandle(token);
-    }
-
-    ::CloseHandle(pi.hProcess);
-    ::CloseHandle(pi.hThread);
-    return true;
-}
 
 CString GetFormattedTime() {
     SYSTEMTIME sysTime = { 0 };
@@ -151,21 +115,6 @@ void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
 
     RunNewProcess(szUpdaterCmdline, installPath.c_str(), NULL);
     free(szUpdaterCmdline);
-}
-
-void RunApp(std::wstring& installPath, tofstream& m_logFile) {
-    std::wstring cmd = installPath;
-    cmd += _T("\\Audit.exe");
-    if (!PathFileExists(cmd.c_str())) {
-        m_logFile << GetFormattedTime().GetString() << cmd << " not exists" << std::endl;
-        return;
-    }
-    cmd += _T(" --auto-start");
-
-    LPTSTR szAppCmdline = _tcsdup(cmd.c_str());
-    m_logFile << GetFormattedTime().GetString() << "cmdline " << szAppCmdline << std::endl;
-    StartInteractiveProcess(szAppCmdline, installPath.c_str());
-    free(szAppCmdline);
 }
 
 
