@@ -19,7 +19,7 @@ void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL
         NULL,
         NULL,
         FALSE,
-        0,
+        CREATE_NEW_PROCESS_GROUP,
         NULL,
         lpWorkDir,
         &si,
@@ -29,9 +29,8 @@ void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL
         return;
     }
 
-    // Wait until child process exits.
-    WaitForSingleObject(pi.hProcess, INFINITE);
     if (exitCode != NULL) {
+        WaitForSingleObject(pi.hProcess, INFINITE);
         GetExitCodeProcess(pi.hProcess, exitCode);
     }
     // Close process and thread handles. 
