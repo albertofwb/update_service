@@ -102,6 +102,9 @@ void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
         return;
     }
 
+    // check update every 6 hours
+    cmd += _T(" --interval_check 6");
+
     cmd += _T(" --log_path ");
     cmd += installPath;
     cmd += _T("\\update_log.log");
