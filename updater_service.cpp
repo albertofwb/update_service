@@ -7,6 +7,9 @@
 using tofstream = std::wofstream;
 
 
+HANDLE gUpdaterProcess = NULL;
+const TCHAR* kUpdateName = _T("AuditUpdate.exe");
+
 void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL) {
     STARTUPINFO si;
     PROCESS_INFORMATION pi;
@@ -34,7 +37,8 @@ void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL
         GetExitCodeProcess(pi.hProcess, exitCode);
     }
     // Close process and thread handles. 
-    CloseHandle(pi.hProcess);
+    // CloseHandle(pi.hProcess);
+    gUpdaterProcess = pi.hProcess;
     CloseHandle(pi.hThread);
 }
 
@@ -44,7 +48,7 @@ CString GetFormattedTime() {
     ::GetLocalTime(&sysTime);
 
     static CString message;
-    message.Format(_T("%04d-%2d-%2d %2d:%2d:%2d "),
+    message.Format(_T("%04d-%02d-%02d %2d:%2d:%2d "),
         sysTime.wYear, sysTime.wMonth, sysTime.wDay,
         sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
 
@@ -61,7 +65,9 @@ BOOL ReadFromRegistry(LPTSTR lpSubKey, LPTSTR pszKeyname, LPTSTR szBuff, DWORD d
 
     // https://stackoverflow.com/questions/252297/why-is-regopenkeyex-returning-error-code-2-on-vista-64bit
     lResult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_READ | KEY_WOW64_64KEY, &hKey);
-
+    if (lResult != 0) {
+        lResult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_READ | KEY_WOW64_32KEY, &hKey);
+    }
     fSuccess = (lResult == 0);
 
     if (fSuccess)
@@ -86,9 +92,12 @@ BOOL ReadFromRegistry(LPTSTR lpSubKey, LPTSTR pszKeyname, LPTSTR szBuff, DWORD d
 
 
 std::wstring GetAppInstallPath() {
-    TCHAR szInstallPath[MAX_PATH] = { 0 };
+    static TCHAR szInstallPath[MAX_PATH] = { 0 };
 
-    ReadFromRegistry(_T("SOFTWARE\\XADL\\Audit"), _T("InstallPath"), szInstallPath, MAX_PATH);
+    int i = _tcsnlen(szInstallPath, MAX_PATH);
+    if (i == 0) {
+        ReadFromRegistry(_T("SOFTWARE\\XADL\\Audit"), _T("InstallPath"), szInstallPath, MAX_PATH);
+    }
     return szInstallPath;
 }
 
@@ -96,7 +105,8 @@ std::wstring GetAppInstallPath() {
 
 void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
     std::wstring cmd = installPath;
-    cmd += _T("\\updater.exe");
+    cmd += _T("\\");
+    cmd += kUpdateName;
     if (!PathFileExists(cmd.c_str())) {
         m_logFile << GetFormattedTime().GetString() << cmd << " not exists" << std::endl;
         return;
@@ -163,4 +173,8 @@ void UpdaterService::OnStop() {
         m_logFile << GetFormattedTime().GetString() << "stopped" << std::endl;
     }
     m_logFile.close();
+    if (gUpdaterProcess != NULL) {
+        TerminateProcess(gUpdaterProcess, 0);
+        m_logFile << GetFormattedTime().GetString() << " terminate " << std::endl;
+    }
 }
