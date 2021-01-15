@@ -86,15 +86,19 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="namepipe_server.h" />
     <ClInclude Include="service_base.h" />
     <ClInclude Include="service_installer.h" />
     <ClInclude Include="updater_service.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="namepipe_server.cpp" />
     <ClCompile Include="service_base.cpp" />
     <ClCompile Include="service_installer.cpp" />
     <ClCompile Include="updater_service.cpp" />
+    <ClCompile Include="utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

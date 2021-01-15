@@ -1,4 +1,6 @@
 #include "updater_service.h"
+#include "namepipe_server.h"
+#include "utils.h"
 #include <Shlobj.h>
 #include <Windows.h>
 #include <WtsApi32.h>
@@ -9,38 +11,6 @@ using tofstream = std::wofstream;
 
 HANDLE gUpdaterProcess = NULL;
 const TCHAR* kUpdateName = _T("AuditUpdate.exe");
-
-void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir, DWORD* exitCode=NULL) {
-    STARTUPINFO si;
-    PROCESS_INFORMATION pi;
-
-    ZeroMemory(&si, sizeof(si));
-    si.cb = sizeof(si);
-    ZeroMemory(&pi, sizeof(pi));
-    if (!CreateProcess(NULL,
-        lpCommandLine,
-        NULL,
-        NULL,
-        FALSE,
-        CREATE_NEW_PROCESS_GROUP,
-        NULL,
-        lpWorkDir,
-        &si,
-        &pi))
-    {
-        _tprintf(_T("CreateProcess failed %s (%d).\n"), lpCommandLine, GetLastError());
-        return;
-    }
-
-    if (exitCode != NULL) {
-        WaitForSingleObject(pi.hProcess, INFINITE);
-        GetExitCodeProcess(pi.hProcess, exitCode);
-    }
-    // Close process and thread handles. 
-    // CloseHandle(pi.hProcess);
-    gUpdaterProcess = pi.hProcess;
-    CloseHandle(pi.hThread);
-}
 
 
 CString GetFormattedTime() {
@@ -125,7 +95,7 @@ void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
     LPTSTR szUpdaterCmdline = _tcsdup(cmd.c_str());
     m_logFile << GetFormattedTime().GetString() << "cmdline " << szUpdaterCmdline << std::endl;
 
-    RunNewProcess(szUpdaterCmdline, installPath.c_str(), NULL);
+    RunNewProcess(szUpdaterCmdline, installPath.c_str());
     free(szUpdaterCmdline);
 }
 
@@ -164,7 +134,12 @@ void UpdaterService::OnStart(DWORD /*argc*/, TCHAR** /*argv[]*/) {
     else {
         m_logFile << GetFormattedTime().GetString() << "started" << std::endl;
     }
+    CreateThread(NULL, 0, StartNamePipeServer, NULL, 0, NULL);
     CheckAppUpdateEverySixHours(m_logFile);
+#ifdef _DEBUG
+    printf("service started\n");
+    getchar();
+#endif // _DEBUG
 }
 
 void UpdaterService::OnStop() {

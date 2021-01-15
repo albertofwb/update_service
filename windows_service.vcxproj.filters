@@ -26,6 +26,12 @@
     <ClInclude Include="updater_service.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="namepipe_server.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -38,6 +44,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="updater_service.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="namepipe_server.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
