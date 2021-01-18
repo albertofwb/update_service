@@ -3,3 +3,4 @@
 
 void UninstallClient();
 std::wstring GetAppInstallPath();
+void KillUpdater();

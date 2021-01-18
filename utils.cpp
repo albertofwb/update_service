@@ -1,9 +1,7 @@
 #include "utils.h"
-#include <windows.h> 
 #include <stdio.h>
-#include <tchar.h>
-#include <strsafe.h>
 
+using namespace std;
 
 void RunNewProcess(LPTSTR lpCommandLine, LPCTSTR lpWorkDir) {
     STARTUPINFO si;
@@ -65,4 +63,41 @@ BOOL ReadFromRegistry(LPTSTR lpSubKey, LPTSTR pszKeyname, LPTSTR szBuff, DWORD d
     }
 
     return fSuccess;
+}
+
+
+BOOL FindProcessPid(LPCTSTR ProcessName, DWORD& dwPid)
+{
+    HANDLE hProcessSnap;
+    PROCESSENTRY32 pe32;
+
+    // Take a snapshot of all processes in the system.
+    hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (hProcessSnap == INVALID_HANDLE_VALUE)
+    {
+        return(FALSE);
+    }
+
+    pe32.dwSize = sizeof(PROCESSENTRY32);
+
+    if (!Process32First(hProcessSnap, &pe32))
+    {
+        CloseHandle(hProcessSnap);          // clean the snapshot object
+        return(FALSE);
+    }
+
+    BOOL    bRet = FALSE;
+    do
+    {
+        if (!_tcsicmp(ProcessName, pe32.szExeFile))
+        {
+            dwPid = pe32.th32ProcessID;
+            bRet = TRUE;
+            break;
+        }
+
+    } while (Process32Next(hProcessSnap, &pe32));
+
+    CloseHandle(hProcessSnap);
+    return bRet;
 }

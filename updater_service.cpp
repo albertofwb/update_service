@@ -10,7 +10,6 @@
 using tofstream = std::wofstream;
 
 
-HANDLE gUpdaterProcess = NULL;
 const TCHAR* kUpdateName = _T("AuditUpdate.exe");
 
 
@@ -25,7 +24,6 @@ CString GetFormattedTime() {
 
     return message;
 }
-
 
 
 void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
@@ -104,8 +102,5 @@ void UpdaterService::OnStop() {
         m_logFile << GetFormattedTime().GetString() << "stopped" << std::endl;
     }
     m_logFile.close();
-    if (gUpdaterProcess != NULL) {
-        TerminateProcess(gUpdaterProcess, 0);
-        m_logFile << GetFormattedTime().GetString() << " terminate " << std::endl;
-    }
+    KillUpdater();
 }
