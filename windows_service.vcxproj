@@ -52,7 +52,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
     </ClCompile>
     <Link>
@@ -68,7 +68,7 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
@@ -86,19 +86,23 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="acl_control.h" />
     <ClInclude Include="namepipe_server.h" />
     <ClInclude Include="service_base.h" />
     <ClInclude Include="service_installer.h" />
     <ClInclude Include="updater_service.h" />
     <ClInclude Include="utils.h" />
+    <ClInclude Include="xadl_utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="acl_control.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="namepipe_server.cpp" />
     <ClCompile Include="service_base.cpp" />
     <ClCompile Include="service_installer.cpp" />
     <ClCompile Include="updater_service.cpp" />
     <ClCompile Include="utils.cpp" />
+    <ClCompile Include="xadl_utils.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

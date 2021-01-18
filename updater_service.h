@@ -24,6 +24,7 @@ public:
 #ifdef _DEBUG
     void Test() {
         OnStart(1, NULL);
+        getchar();
     }
 #endif
 private:

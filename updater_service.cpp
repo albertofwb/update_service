@@ -1,10 +1,11 @@
 #include "updater_service.h"
 #include "namepipe_server.h"
 #include "utils.h"
+#include "xadl_utils.h"
+
 #include <Shlobj.h>
 #include <Windows.h>
 #include <WtsApi32.h>
-#include <string>
 #include <fstream>
 using tofstream = std::wofstream;
 
@@ -23,52 +24,6 @@ CString GetFormattedTime() {
         sysTime.wHour, sysTime.wMinute, sysTime.wSecond);
 
     return message;
-}
-
-
-BOOL ReadFromRegistry(LPTSTR lpSubKey, LPTSTR pszKeyname, LPTSTR szBuff, DWORD dwSize)
-{
-    HKEY hKey = NULL;
-    LONG lResult = 0;
-    BOOL fSuccess = TRUE;
-    DWORD dwRegType = REG_SZ;
-
-    // https://stackoverflow.com/questions/252297/why-is-regopenkeyex-returning-error-code-2-on-vista-64bit
-    lResult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_READ | KEY_WOW64_64KEY, &hKey);
-    if (lResult != 0) {
-        lResult = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_READ | KEY_WOW64_32KEY, &hKey);
-    }
-    fSuccess = (lResult == 0);
-
-    if (fSuccess)
-    {
-        lResult = RegQueryValueEx(hKey, pszKeyname, NULL, &dwRegType, (LPBYTE)szBuff, &dwSize);
-        fSuccess = (lResult == 0);
-    }
-
-    if (fSuccess)
-    {
-        fSuccess = (_tcslen(szBuff) > 0);
-    }
-
-    if (hKey != NULL)
-    {
-        RegCloseKey(hKey);
-        hKey = NULL;
-    }
-
-    return fSuccess;
-}
-
-
-std::wstring GetAppInstallPath() {
-    static TCHAR szInstallPath[MAX_PATH] = { 0 };
-
-    int i = _tcsnlen(szInstallPath, MAX_PATH);
-    if (i == 0) {
-        ReadFromRegistry(_T("SOFTWARE\\XADL\\Audit"), _T("InstallPath"), szInstallPath, MAX_PATH);
-    }
-    return szInstallPath;
 }
 
 
@@ -134,11 +89,12 @@ void UpdaterService::OnStart(DWORD /*argc*/, TCHAR** /*argv[]*/) {
     else {
         m_logFile << GetFormattedTime().GetString() << "started" << std::endl;
     }
-    CreateThread(NULL, 0, StartNamePipeServer, NULL, 0, NULL);
-    CheckAppUpdateEverySixHours(m_logFile);
+
+     CreateThread(NULL, 0, StartNamePipeServer, NULL, 0, NULL);
+    _tprintf(_T("started named pipe"));
+     CheckAppUpdateEverySixHours(m_logFile);
 #ifdef _DEBUG
     printf("service started\n");
-    getchar();
 #endif // _DEBUG
 }
 

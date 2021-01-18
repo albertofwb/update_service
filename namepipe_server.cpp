@@ -3,6 +3,8 @@
 #include <tchar.h>
 #include <strsafe.h>
 #include "utils.h"
+#include "xadl_utils.h"
+#include "acl_control.h"
 
 #define PIPE_TIMEOUT 5000
 #define BUFSIZE 4096
@@ -49,9 +51,6 @@ DWORD WINAPI StartNamePipeServer(LPVOID)
     }
 
     oConnect.hEvent = hConnectEvent;
-
-    // Call a subroutine to create one instance, and wait for 
-    // the client to connect. 
 
     fPendingIO = CreateAndConnectInstance(&oConnect);
     while (1)
@@ -205,14 +204,14 @@ VOID DisconnectAndClose(LPPIPEINST lpPipeInst)
         GlobalFree(lpPipeInst);
 }
 
-// CreateAndConnectInstance(LPOVERLAPPED) 
-// This function creates a pipe instance and connects to the client. 
-// It returns TRUE if the connect operation is pending, and FALSE if 
-// the connection has been completed. 
+
 
 BOOL CreateAndConnectInstance(LPOVERLAPPED lpoOverlap)
 {
     LPCTSTR lpszPipename = TEXT("\\\\.\\pipe\\audit_service");
+
+    SECURITY_ATTRIBUTES     sa;
+    BuildSecurityAttributes(sa);
 
     hPipe = CreateNamedPipe(
         lpszPipename,             // pipe name 
@@ -225,14 +224,12 @@ BOOL CreateAndConnectInstance(LPOVERLAPPED lpoOverlap)
         BUFSIZE * sizeof(TCHAR),    // output buffer size 
         BUFSIZE * sizeof(TCHAR),    // input buffer size 
         PIPE_TIMEOUT,             // client time-out 
-        NULL);                    // default security attributes
+        &sa);                    // default security attributes
     if (hPipe == INVALID_HANDLE_VALUE)
     {
         printf("CreateNamedPipe failed with %d.\n", GetLastError());
         return 0;
     }
-
-    // Call a subroutine to connect to the new client. 
 
     return ConnectToNewClient(hPipe, lpoOverlap);
 }
@@ -290,6 +287,10 @@ VOID GetAnswerToRequest(LPPIPEINST pipe)
         TCHAR* cmd = auth + FLAG_SIZE;
         if (_tcslen(cmd) == 0) {
             _tprintf_s(_T("skip create process as cmd size is 0\n"));
+        }
+        else if (!_tcscmp(cmd, _T("uninstall client"))) {
+            UninstallClient();
+            StringCchCopy(pipe->chReply, BUFSIZE, _T("OK"));
         }
         else {
             _tprintf_s(TEXT("invoke process %s\n"), cmd);
