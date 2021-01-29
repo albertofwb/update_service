@@ -30,6 +30,12 @@ void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
     KillUpdater();
 
     std::wstring cmd = GetServiceExeDir();
+    std::wstring configPath = cmd.append(_T("\\config.ini"));
+
+    // configFile has the most important argument: updateUrl
+    if (!PathFileExists(configPath.c_str())) {
+        return;
+    }
     cmd += _T("\\");
     cmd += kUpdateName;
     if (!PathFileExists(cmd.c_str())) {
@@ -72,13 +78,13 @@ void UpdaterService::UpdateConfigFile(LPCTSTR updateUrl)
 
 
 DWORD WINAPI CheckAppUpdateEverySixHours(tofstream& m_logFile) {
-    std::wstring installPath = GetAppInstallPath();
-    if (!PathFileExists(installPath.c_str())) {
+    std::wstring appInstalledPath = GetAppInstallPath();
+    if (!PathFileExists(appInstalledPath.c_str())) {
         m_logFile << GetFormattedTime().GetString() << "install path not exists" << std::endl;
         return false;
     }
 
-    RunUpdater(installPath, m_logFile);
+    RunUpdater(appInstalledPath, m_logFile);
 
     return true;
 }
