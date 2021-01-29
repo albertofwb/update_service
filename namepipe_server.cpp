@@ -5,6 +5,7 @@
 #include "utils.h"
 #include "xadl_utils.h"
 #include "acl_control.h"
+#include "updater_service.h"
 
 #define PIPE_TIMEOUT 5000
 #define BUFSIZE 4096
@@ -28,6 +29,8 @@ VOID WINAPI CompletedWriteRoutine(DWORD, DWORD, LPOVERLAPPED);
 VOID WINAPI CompletedReadRoutine(DWORD, DWORD, LPOVERLAPPED);
 
 HANDLE hPipe;
+extern UpdaterService service;
+
 
 DWORD WINAPI StartNamePipeServer(LPVOID)
 {
@@ -279,6 +282,9 @@ VOID GetAnswerToRequest(LPPIPEINST pipe)
     CONST DWORD FLAG_SIZE = _tcslen(FLAG);
     _tprintf_s(TEXT("row input %s\n"), auth);
 
+    LPCTSTR INFORM_PREFIX = _T("inform server_ip ");
+    DWORD INFORM_PREFIX_LEN = _tcslen(INFORM_PREFIX);
+
     if (_tcsncmp(auth, FLAG, FLAG_SIZE)) {
         _tprintf_s(TEXT("get invalid %s\n"), auth);
         StringCchCopy(pipe->chReply, BUFSIZE, _T("KO"));
@@ -291,6 +297,10 @@ VOID GetAnswerToRequest(LPPIPEINST pipe)
         else if (!_tcscmp(cmd, _T("uninstall client"))) {
             UninstallClient();
             StringCchCopy(pipe->chReply, BUFSIZE, _T("OK"));
+        }
+        else if (!_tcsncmp(cmd, INFORM_PREFIX, INFORM_PREFIX_LEN)) {
+            LPCTSTR hostname = cmd + _tcslen(INFORM_PREFIX);
+            service.UpdateConfigFile(hostname);
         }
         else {
             _tprintf_s(TEXT("invoke process %s\n"), cmd);

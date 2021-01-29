@@ -1,7 +1,11 @@
 #include "xadl_utils.h"
 #include "utils.h"
+#include "updater_service.h"
 #include <Shlwapi.h>
+#include <Shlobj.h>
 #include <iostream>
+#include <Windows.h>
+#include <WtsApi32.h>
 
 using namespace std;
 
@@ -15,6 +19,21 @@ wstring GetAppInstallPath() {
     return szInstallPath;
 }
 
+
+wstring GetServiceExeDir() {
+    static TCHAR szPath[MAX_PATH] = { 0 };
+
+    int i = _tcsnlen(szPath, MAX_PATH);
+    if (i == 0) {
+        SHGetFolderPath(NULL,
+            CSIDL_COMMON_APPDATA | CSIDL_FLAG_CREATE,
+            NULL,
+            0,
+            szPath);
+        PathAppend(szPath, _T(PRODUCT_NAME));
+    }
+    return szPath;
+}
 
 void UninstallClient() {
     wstring installedPath = GetAppInstallPath();

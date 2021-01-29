@@ -21,6 +21,7 @@ public:
             SERVICE_AUTO_START,
             SERVICE_ERROR_NORMAL,
             SERVICE_ACCEPT_STOP) {}
+    void UpdateConfigFile(LPCTSTR);
 #ifdef _DEBUG
     void Test() {
         OnStart(1, NULL);

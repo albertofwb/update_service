@@ -27,7 +27,9 @@ CString GetFormattedTime() {
 
 
 void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
-    std::wstring cmd = installPath;
+    KillUpdater();
+
+    std::wstring cmd = GetServiceExeDir();
     cmd += _T("\\");
     cmd += kUpdateName;
     if (!PathFileExists(cmd.c_str())) {
@@ -52,6 +54,22 @@ void RunUpdater(std::wstring& installPath, tofstream& m_logFile) {
     free(szUpdaterCmdline);
 }
 
+void UpdaterService::UpdateConfigFile(LPCTSTR updateUrl)
+{
+    m_logFile << GetFormattedTime().GetString() << "set updateUrl to " << updateUrl << std::endl;
+    std::wstring installPath = GetServiceExeDir();
+    std::wstring configPath = installPath.append(_T("\\")).append(_T("config.ini"));
+
+    tofstream configFile;
+    configFile.open(configPath, std::ios_base::trunc);
+    if (configFile.is_open()) {
+        configFile << updateUrl;
+        configFile.close();
+    }
+    m_logFile << GetFormattedTime().GetString() << "restart updater" << std::endl;
+    RunUpdater(installPath, m_logFile);
+}
+
 
 DWORD WINAPI CheckAppUpdateEverySixHours(tofstream& m_logFile) {
     std::wstring installPath = GetAppInstallPath();
@@ -64,6 +82,7 @@ DWORD WINAPI CheckAppUpdateEverySixHours(tofstream& m_logFile) {
 
     return true;
 }
+
 
 void UpdaterService::OnStart(DWORD /*argc*/, TCHAR** /*argv[]*/) {
     m_logFile.close();

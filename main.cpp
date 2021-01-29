@@ -1,8 +1,9 @@
 #include "updater_service.h"
 #include "service_installer.h"
 
+UpdaterService service;
+
 int _tmain(int argc, TCHAR* argv[]) {
-  UpdaterService service;
 
   if (argc > 1) {
     if (_tcscmp(argv[1], _T("install")) == 0) {
